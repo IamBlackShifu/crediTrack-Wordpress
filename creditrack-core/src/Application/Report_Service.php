@@ -1,0 +1,26 @@
+<?php
+namespace CrediTrack\Application;
+
+use WP_Error;
+
+final class Report_Service {
+	public function generate( string $type, array $filters ): array|WP_Error {
+		if ( ! current_user_can( 'creditrack_view_reports' ) ) { return new WP_Error( 'forbidden', 'You cannot view reports.' ); }
+		global $wpdb; $from = self::date( $filters['from'] ?? '', gmdate( 'Y-m-01' ) ); $to = self::date( $filters['to'] ?? '', gmdate( 'Y-m-d' ) ); if ( $from > $to ) { return new WP_Error( 'validation', 'The start date must not be after the end date.' ); }
+		return match ( $type ) {
+			'portfolio' => array( 'columns' => array( 'status','loan_count','principal','repaid','outstanding' ), 'rows' => $wpdb->get_results( "SELECT status,COUNT(*) loan_count,SUM(principal) principal,SUM(total_paid) repaid,SUM(outstanding) outstanding FROM {$wpdb->prefix}ct_loans GROUP BY status ORDER BY status", ARRAY_A ) ),
+			'disbursements' => array( 'columns' => array( 'loan_number','borrower','disbursement_date','officer','principal','status' ), 'rows' => $wpdb->get_results( $wpdb->prepare( "SELECT l.loan_number,CONCAT(c.first_name,' ',c.last_name) borrower,l.disbursement_date,u.display_name officer,l.principal,l.status FROM {$wpdb->prefix}ct_loans l JOIN {$wpdb->prefix}ct_clients c ON c.id=l.client_id LEFT JOIN {$wpdb->users} u ON u.ID=l.created_by WHERE l.disbursement_date BETWEEN %s AND %s ORDER BY l.disbursement_date", $from, $to ), ARRAY_A ) ),
+			'collections' => array( 'columns' => array( 'receipt','payment_date','borrower','loan_number','method','reference_number','amount','recorder' ), 'rows' => $wpdb->get_results( $wpdb->prepare( "SELECT CONCAT('CT-R-',p.id) receipt,p.payment_date,CONCAT(c.first_name,' ',c.last_name) borrower,l.loan_number,p.method,p.reference_number,p.amount,u.display_name recorder FROM {$wpdb->prefix}ct_payments p JOIN {$wpdb->prefix}ct_loans l ON l.id=p.loan_id JOIN {$wpdb->prefix}ct_clients c ON c.id=l.client_id LEFT JOIN {$wpdb->users} u ON u.ID=p.recorded_by WHERE p.payment_date BETWEEN %s AND %s ORDER BY p.payment_date,p.id", $from, $to ), ARRAY_A ) ),
+			'arrears' => array( 'columns' => array( 'loan_number','borrower','phone','unpaid_amount','oldest_due_date','days_past_due','aging_bucket' ), 'rows' => $wpdb->get_results( "SELECT l.loan_number,CONCAT(c.first_name,' ',c.last_name) borrower,c.phone,SUM(s.remaining_amount) unpaid_amount,MIN(s.due_date) oldest_due_date,MAX(s.days_past_due) days_past_due,CASE WHEN MAX(s.days_past_due)<=30 THEN '1-30' WHEN MAX(s.days_past_due)<=60 THEN '31-60' WHEN MAX(s.days_past_due)<=90 THEN '61-90' ELSE '91+' END aging_bucket FROM {$wpdb->prefix}ct_schedules s JOIN {$wpdb->prefix}ct_loans l ON l.id=s.loan_id JOIN {$wpdb->prefix}ct_clients c ON c.id=l.client_id WHERE s.overdue=1 AND s.remaining_amount>0 GROUP BY l.id ORDER BY days_past_due DESC", ARRAY_A ) ),
+			'maturity' => array( 'columns' => array( 'loan_number','borrower','maturity_date','outstanding','status' ), 'rows' => $wpdb->get_results( $wpdb->prepare( "SELECT l.loan_number,CONCAT(c.first_name,' ',c.last_name) borrower,l.maturity_date,l.outstanding,l.status FROM {$wpdb->prefix}ct_loans l JOIN {$wpdb->prefix}ct_clients c ON c.id=l.client_id WHERE l.maturity_date BETWEEN %s AND %s OR (l.maturity_date<UTC_DATE() AND l.outstanding>0) ORDER BY l.maturity_date", $from, $to ), ARRAY_A ) ),
+			'officers' => array( 'columns' => array( 'officer','originations','principal','active_portfolio','collections','arrears' ), 'rows' => $wpdb->get_results( "SELECT u.display_name officer,COUNT(DISTINCT l.id) originations,COALESCE(SUM(DISTINCT l.principal),0) principal,COALESCE(SUM(DISTINCT CASE WHEN l.status IN ('Active','Defaulted') THEN l.outstanding ELSE 0 END),0) active_portfolio,COALESCE((SELECT SUM(p.amount) FROM {$wpdb->prefix}ct_payments p JOIN {$wpdb->prefix}ct_loans lp ON lp.id=p.loan_id WHERE lp.created_by=u.ID),0) collections,COALESCE((SELECT SUM(s.remaining_amount) FROM {$wpdb->prefix}ct_schedules s JOIN {$wpdb->prefix}ct_loans la ON la.id=s.loan_id WHERE la.created_by=u.ID AND s.overdue=1),0) arrears FROM {$wpdb->users} u JOIN {$wpdb->prefix}ct_loans l ON l.created_by=u.ID GROUP BY u.ID ORDER BY originations DESC", ARRAY_A ) ),
+			default => new WP_Error( 'report', 'Select a valid report.' ),
+		};
+	}
+	public function stream_csv( string $type, array $filters ): never {
+		$result = $this->generate( $type, $filters ); if ( is_wp_error( $result ) ) { wp_die( esc_html( $result->get_error_message() ), '', array( 'response' => 400 ) ); }
+		nocache_headers(); header( 'X-Content-Type-Options: nosniff' ); header( 'Content-Type: text/csv; charset=utf-8' ); header( 'Content-Disposition: attachment; filename="creditrack-' . sanitize_key( $type ) . '-' . gmdate( 'Ymd-His' ) . '.csv"' ); $out = fopen( 'php://output', 'w' ); fputcsv( $out, $result['columns'] ); foreach ( $result['rows'] as $row ) { fputcsv( $out, array_map( array( self::class, 'safe_csv' ), $row ) ); } fclose( $out ); exit;
+	}
+	private static function safe_csv( mixed $value ): string { $value = (string) $value; return preg_match( '/^[=+\-@\t\r]/', $value ) ? "'" . $value : $value; }
+	private static function date( string $value, string $fallback ): string { $date = \DateTimeImmutable::createFromFormat( '!Y-m-d', $value ); return $date && $date->format( 'Y-m-d' ) === $value ? $value : $fallback; }
+}

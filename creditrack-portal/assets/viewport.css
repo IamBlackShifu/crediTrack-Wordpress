@@ -1,0 +1,4 @@
+.ct-landing{height:100svh;min-height:100svh;max-height:100svh;overflow:hidden}
+@supports not (height:100svh){.ct-landing{height:100vh;min-height:100vh;max-height:100vh}}
+@media(max-height:560px){.ct-landing{padding-top:20px;padding-bottom:20px}.ct-landing-mark,.ct-trust-row,.ct-landing-footer{display:none}.ct-eyebrow{margin-top:0}.ct-landing h1{font-size:clamp(1.8rem,7vh,2.8rem)}.ct-landing-actions{margin-top:12px}}
+@media(max-height:420px),(min-resolution:3dppx) and (max-height:560px){.ct-landing{height:auto;min-height:100svh;max-height:none;overflow:auto}}

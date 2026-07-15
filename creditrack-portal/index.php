@@ -1,0 +1,5 @@
+<?php
+defined( 'ABSPATH' ) || exit;
+if ( is_user_logged_in() ) { wp_safe_redirect( home_url( '/creditrack/dashboard/' ) ); exit; }
+get_header();
+?><main class="ct-landing"><div class="ct-landing-shade"></div><section class="ct-landing-copy"><div class="ct-landing-mark" aria-hidden="true">CT</div><p class="ct-eyebrow">Secure credit operations</p><h1>Clarity for every client, loan, and repayment.</h1><p class="ct-landing-lead">CrediTrack gives microfinance teams one dependable workspace for portfolio oversight, lending workflows, repayment schedules, and audit-ready records.</p><div class="ct-landing-actions"><a class="ct-button ct-button-light" href="<?php echo esc_url( wp_login_url( home_url( '/creditrack/dashboard/' ) ) ); ?>">Sign in to your workspace</a><span>Authorized team members only</span></div><div class="ct-trust-row"><span>Protected records</span><span>Deterministic calculations</span><span>Operational visibility</span></div></section><footer class="ct-landing-footer"><strong>CrediTrack</strong> is a product of <strong>Infinity Lines of Code (Pvt) Ltd</strong></footer></main><?php get_footer();

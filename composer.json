@@ -1,0 +1,16 @@
+{
+  "name": "creditrack/wordpress",
+  "description": "CrediTrack WordPress plugin and portal theme",
+  "type": "project",
+  "require": { "php": ">=8.1" },
+  "require-dev": {
+    "phpcompatibility/php-compatibility": "^9.3",
+    "squizlabs/php_codesniffer": "^3.10",
+    "wp-coding-standards/wpcs": "^3.1"
+  },
+  "scripts": {
+    "test:domain": "php tests/domain-test.php",
+    "lint": "phpcs --standard=WordPress creditrack-core creditrack-portal"
+  },
+  "config": { "allow-plugins": { "dealerdirect/phpcodesniffer-composer-installer": true } }
+}
