@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.3.5 - 2026-07-16
+
+- Promoted the tested rc4 build to the production release without changing financial or workflow behavior.
+- Finalized native wp-admin integration, Loan Officer form routing, portable WordPress packages, responsive portal styling, and compact grouped navigation.
+- Completed production metadata, documentation, static checks, domain tests, artifact scans, and package verification.
+
+## 0.3.5-rc4 - 2026-07-16
+
+- Consolidated Users, Audit log, Settings, and Backups into an expandable Administration sidebar group.
+- Made the navigation independently scrollable and moved the product credit into normal layout flow to prevent overlap on short screens.
+- Reduced sidebar spacing while preserving mobile and keyboard navigation.
+
+## 0.3.5-rc3 - 2026-07-16
+
+- Added native wp-admin CrediTrack overview and settings pages.
+- Added a Plugins-screen Settings shortcut and an Appearance > CrediTrack Portal information page.
+- Reused the secured settings validation, persistence, and audit workflow for both portal and wp-admin configuration.
+
 ## 0.3.5-rc2 - 2026-07-15
 
 - Fixed the Loan Officer WordPress-admin guard intercepting secured `admin-post.php` mutations before CrediTrack handlers ran.

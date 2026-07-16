@@ -1,0 +1,8 @@
+CrediTrack 0.3.5 production release
+Infinity Lines of Code (Pvt) Ltd
+
+Install or update creditrack-core-0.3.5.zip first, then creditrack-portal-0.3.5.zip.
+Take a host-level database and wp-content backup before updating.
+After installation, save WordPress permalinks and complete the production smoke checks.
+
+See ../docs/deployment.md and ../docs/online-e2e-checklist.md in the source repository.

@@ -6,3 +6,9 @@ add_action( 'init', static function (): void { add_rewrite_rule( '^creditrack/?(
 add_filter( 'query_vars', static function ( array $vars ): array { $vars[] = 'creditrack_portal'; $vars[] = 'creditrack_page'; return $vars; } );
 add_filter( 'template_include', static function ( string $template ): string { return get_query_var( 'creditrack_portal' ) ? get_template_directory() . '/portal.php' : $template; } );
 add_action( 'after_switch_theme', 'flush_rewrite_rules' );
+add_action( 'admin_menu', static function (): void {
+	add_theme_page( 'CrediTrack Portal', 'CrediTrack Portal', 'manage_options', 'creditrack-portal', static function (): void {
+		$theme = wp_get_theme();
+		?><div class="wrap"><h1>CrediTrack Portal</h1><p>The management portal theme for CrediTrack Core, produced by Infinity Lines of Code (Pvt) Ltd.</p><table class="widefat striped" style="max-width:760px"><tbody><tr><th scope="row">Theme version</th><td><?php echo esc_html( $theme->get( 'Version' ) ); ?></td></tr><tr><th scope="row">Core status</th><td><?php echo defined( 'CREDITRACK_VERSION' ) ? esc_html( 'Active — ' . CREDITRACK_VERSION ) : 'CrediTrack Core is not active.'; ?></td></tr><tr><th scope="row">Portal URL</th><td><code><?php echo esc_html( home_url( '/creditrack/dashboard/' ) ); ?></code></td></tr></tbody></table><p><a class="button button-primary" href="<?php echo esc_url( home_url( '/creditrack/dashboard/' ) ); ?>">Open Portal</a><?php if ( defined( 'CREDITRACK_VERSION' ) ) { ?> <a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=creditrack-settings' ) ); ?>">CrediTrack Settings</a><?php } ?></p><p>Branding, currency, lending defaults, notification policy, permissions, document limits, and retention are managed centrally by CrediTrack Core so the plugin and theme always use the same values.</p></div><?php
+	} );
+} );

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: CrediTrack Core
  * Description: Transactional lending and credit-management services for CrediTrack.
- * Version: 0.3.5-rc2
+ * Version: 0.3.5
  * Requires at least: 6.6
  * Requires PHP: 8.1
  * Author: Infinity Lines of Code (Pvt) Ltd
@@ -13,7 +13,7 @@ namespace CrediTrack;
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'CREDITRACK_VERSION', '0.3.5-rc2' );
+define( 'CREDITRACK_VERSION', '0.3.5' );
 define( 'CREDITRACK_FILE', __FILE__ );
 define( 'CREDITRACK_PATH', plugin_dir_path( __FILE__ ) );
 

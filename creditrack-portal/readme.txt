@@ -2,7 +2,7 @@
 Author: Infinity Lines of Code (Pvt) Ltd
 Requires at least: 6.6
 Requires PHP: 8.1
-Version: 0.3.5-rc2
+Version: 0.3.5
 
 Responsive authenticated management portal for CrediTrack Core.
 

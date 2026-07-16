@@ -6,6 +6,8 @@ use CrediTrack\Infrastructure\Activator;
 
 final class Plugin {
 	public function boot(): void {
+		add_action( 'admin_menu', array( Infrastructure\Admin::class, 'register' ) );
+		add_filter( 'plugin_action_links_' . plugin_basename( CREDITRACK_FILE ), array( Infrastructure\Admin::class, 'plugin_links' ) );
 		add_action( 'init', array( Activator::class, 'register_roles' ) );
 		add_filter( 'authenticate', array( Security\Authentication::class, 'block_inactive' ), 30, 3 );
 		add_filter( 'authenticate', array( Security\Authentication::class, 'throttle' ), 5, 3 );

@@ -3,7 +3,7 @@ Contributors: Infinity Lines of Code (Pvt) Ltd
 Tags: microfinance, loans, credit management, repayments
 Requires at least: 6.6
 Requires PHP: 8.1
-Stable tag: 0.3.5-rc2
+Stable tag: 0.3.5
 License: Proprietary
 
 CrediTrack transactional lending and credit-management services.

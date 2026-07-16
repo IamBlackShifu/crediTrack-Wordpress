@@ -75,23 +75,24 @@ final class Portal_Controller {
 	public static function save_settings(): void {
 		self::guard( 'creditrack_manage_settings' );
 		$input = wp_unslash( $_POST );
+		$destination = 'admin' === sanitize_key( $input['creditrack_return'] ?? '' ) ? 'admin:creditrack-settings' : 'settings';
 		$required = array( 'company_name', 'currency_code', 'currency_symbol', 'date_format' );
 		foreach ( $required as $field ) {
 			if ( '' === trim( (string) ( $input[ $field ] ?? '' ) ) ) {
-				self::finish( new \WP_Error( 'validation', ucfirst( str_replace( '_', ' ', $field ) ) . ' is required.' ), 'settings' );
+				self::finish( new \WP_Error( 'validation', ucfirst( str_replace( '_', ' ', $field ) ) . ' is required.' ), $destination );
 			}
 		}
 		$interest_type = sanitize_text_field( $input['default_interest_type'] ?? 'Flat' );
 		if ( ! in_array( $interest_type, array( 'Flat', 'Monthly', 'Quarterly', 'Annual', 'Amortized' ), true ) ) {
-			self::finish( new \WP_Error( 'validation', 'Select a valid default interest type.' ), 'settings' );
+			self::finish( new \WP_Error( 'validation', 'Select a valid default interest type.' ), $destination );
 		}
 		$rate = (string) ( $input['default_interest_rate'] ?? '' );
 		if ( ! is_numeric( $rate ) || (float) $rate < 0 || (float) $rate > 1000 ) {
-			self::finish( new \WP_Error( 'validation', 'Default interest rate must be between 0 and 1000.' ), 'settings' );
+			self::finish( new \WP_Error( 'validation', 'Default interest rate must be between 0 and 1000.' ), $destination );
 		}
 		$timezone = sanitize_text_field( $input['timezone'] ?? 'UTC' );
 		if ( ! in_array( $timezone, timezone_identifiers_list(), true ) ) {
-			self::finish( new \WP_Error( 'validation', 'Select a valid timezone.' ), 'settings' );
+			self::finish( new \WP_Error( 'validation', 'Select a valid timezone.' ), $destination );
 		}
 		$old = get_option( 'creditrack_settings', array() );
 		$new = array(
@@ -119,8 +120,8 @@ final class Portal_Controller {
 		);
 		update_option( 'creditrack_settings', $new, false );
 		\CrediTrack\Infrastructure\Audit::record( 'settings', null, 'update', $old, $new, 'CrediTrack settings updated' );
-		self::finish( true, 'settings' );
+		self::finish( true, $destination );
 	}
 	private static function guard( string $capability ): void { if ( ! is_user_logged_in() || ! current_user_can( $capability ) ) { wp_die( esc_html__( 'Access denied.', 'creditrack' ), '', array( 'response' => 403 ) ); } check_admin_referer( 'creditrack_action' ); }
-	private static function finish( mixed $result, string $page ): never { $args = is_wp_error( $result ) ? array( 'ct_error' => $result->get_error_message() ) : array( 'ct_success' => 1 ); $parts = explode( '?', $page, 2 ); $url = home_url( '/creditrack/' . $parts[0] . '/' ); if ( isset( $parts[1] ) ) { parse_str( $parts[1], $query ); $url = add_query_arg( $query, $url ); } wp_safe_redirect( add_query_arg( $args, $url ) ); exit; }
+	private static function finish( mixed $result, string $page ): never { $args = is_wp_error( $result ) ? array( 'ct_error' => $result->get_error_message() ) : array( 'ct_success' => 1 ); if ( str_starts_with( $page, 'admin:' ) ) { $url = add_query_arg( 'page', sanitize_key( substr( $page, 6 ) ), admin_url( 'admin.php' ) ); } else { $parts = explode( '?', $page, 2 ); $url = home_url( '/creditrack/' . $parts[0] . '/' ); if ( isset( $parts[1] ) ) { parse_str( $parts[1], $query ); $url = add_query_arg( $query, $url ); } } wp_safe_redirect( add_query_arg( $args, $url ) ); exit; }
 }
